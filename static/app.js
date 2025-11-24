@@ -9,6 +9,9 @@ let state = {
 
 // Referencias a elementos del DOM
 const elements = {
+    fileInput: document.getElementById('file-input'),
+    uploadBtn: document.getElementById('upload-btn'),
+    uploadStatus: document.getElementById('upload-status'),
     youtubeUrl: document.getElementById('youtube-url'),
     downloadBtn: document.getElementById('download-btn'),
     downloadStatus: document.getElementById('download-status'),
@@ -30,6 +33,7 @@ const elements = {
 };
 
 // Event Listeners
+elements.uploadBtn.addEventListener('click', uploadFile);
 elements.downloadBtn.addEventListener('click', downloadAudio);
 elements.filterBtns.forEach(btn => {
     btn.addEventListener('click', () => selectFilter(btn.dataset.filter));
@@ -42,6 +46,67 @@ elements.vizBtns.forEach(btn => {
 });
 
 // Funciones
+async function uploadFile() {
+    const file = elements.fileInput.files[0];
+
+    if (!file) {
+        showStatus(elements.uploadStatus, 'Por favor selecciona un archivo', 'error');
+        return;
+    }
+
+    // Validar extensión
+    const allowedExtensions = ['.mp3', '.wav', '.flac', '.ogg', '.m4a'];
+    const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+
+    if (!allowedExtensions.includes(fileExt)) {
+        showStatus(elements.uploadStatus, `Formato no soportado. Usa: ${allowedExtensions.join(', ')}`, 'error');
+        return;
+    }
+
+    elements.uploadBtn.disabled = true;
+    showStatus(elements.uploadStatus, 'Subiendo y procesando archivo...', 'loading');
+
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        if (state.sessionId) {
+            formData.append('session_id', state.sessionId);
+        }
+
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showStatus(elements.uploadStatus, data.message, 'success');
+
+            // Guardar session_id
+            state.sessionId = data.session_id;
+            state.hasAudio = true;
+            state.originalAudioPath = data.filename;
+
+            // Mostrar sección de filtros
+            elements.filterSection.style.display = 'block';
+
+            // Cargar audio original en el reproductor
+            elements.originalAudio.src = `/api/audio/${data.filename}`;
+            elements.playbackSection.style.display = 'block';
+
+            // Mostrar sección de visualización
+            elements.visualizationSection.style.display = 'block';
+        } else {
+            showStatus(elements.uploadStatus, `Error: ${data.detail}`, 'error');
+        }
+    } catch (error) {
+        showStatus(elements.uploadStatus, `Error de conexión: ${error.message}`, 'error');
+    } finally {
+        elements.uploadBtn.disabled = false;
+    }
+}
+
 async function downloadAudio() {
     const url = elements.youtubeUrl.value.trim();
 

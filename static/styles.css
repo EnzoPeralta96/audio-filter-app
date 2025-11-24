@@ -86,6 +86,69 @@ header h1 {
     border-color: #667eea;
 }
 
+/* File Input */
+.file-input {
+    flex: 1;
+    padding: 10px;
+    border: 2px dashed #667eea;
+    border-radius: 8px;
+    font-size: 1em;
+    background: #f8f9fa;
+    cursor: pointer;
+}
+
+.file-input::-webkit-file-upload-button {
+    padding: 10px 20px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+/* Upload/YouTube Sections */
+.upload-section, .youtube-section {
+    margin-bottom: 20px;
+}
+
+.upload-section h3, .youtube-section h3 {
+    color: #667eea;
+    margin-bottom: 10px;
+    font-size: 1.3em;
+}
+
+.subtitle-small {
+    color: #666;
+    font-size: 0.9em;
+    margin-bottom: 15px;
+}
+
+/* Separator */
+.separator {
+    text-align: center;
+    margin: 30px 0;
+    position: relative;
+}
+
+.separator::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #ddd;
+}
+
+.separator span {
+    background: white;
+    padding: 0 20px;
+    position: relative;
+    font-weight: bold;
+    color: #999;
+}
+
 /* Buttons */
 .btn {
     padding: 15px 30px;

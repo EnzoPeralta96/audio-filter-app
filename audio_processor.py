@@ -57,6 +57,21 @@ class AudioProcessor:
         except Exception as e:
             raise Exception(f"Error descargando de YouTube: {str(e)}")
 
+    def process_uploaded_file(self, input_path: str, session_id: str):
+        """Procesar archivo subido (convertir a WAV si es necesario)"""
+        output_path = session_manager.get_session_path(session_id, "downloaded_audio.wav")
+
+        try:
+            # Cargar audio con librosa (soporta múltiples formatos)
+            audio, sr = librosa.load(input_path, sr=22050, mono=True)
+
+            # Guardar como WAV
+            sf.write(output_path, audio, sr)
+
+            return output_path
+        except Exception as e:
+            raise Exception(f"Error procesando archivo: {str(e)}")
+
     def _load_audio(self, session_id: str):
         """Cargar audio de sesión"""
         audio_path = session_manager.get_session_path(session_id, "downloaded_audio.wav")

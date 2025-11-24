@@ -14,19 +14,46 @@
         </header>
 
         <main>
-            <!-- Sección de descarga -->
+            <!-- Sección de carga de audio -->
             <section class="card">
-                <h2>1. Cargar Audio desde YouTube</h2>
-                <div class="input-group">
-                    <input
-                        type="text"
-                        id="youtube-url"
-                        placeholder="Pega aquí la URL de YouTube (ej: https://www.youtube.com/watch?v=...)"
-                        class="input-field"
-                    >
-                    <button id="download-btn" class="btn btn-primary">Descargar Audio</button>
+                <h2>1. Cargar Audio</h2>
+
+                <!-- Opción 1: Subir archivo -->
+                <div class="upload-section">
+                    <h3>📁 Subir Archivo de Audio</h3>
+                    <p class="subtitle-small">Sube un archivo MP3, WAV, FLAC, OGG o M4A desde tu dispositivo</p>
+                    <div class="input-group">
+                        <input
+                            type="file"
+                            id="file-input"
+                            accept=".mp3,.wav,.flac,.ogg,.m4a"
+                            class="file-input"
+                        >
+                        <button id="upload-btn" class="btn btn-success">Subir Archivo</button>
+                    </div>
+                    <div id="upload-status" class="status-message"></div>
                 </div>
-                <div id="download-status" class="status-message"></div>
+
+                <!-- Separador -->
+                <div class="separator">
+                    <span>O</span>
+                </div>
+
+                <!-- Opción 2: YouTube -->
+                <div class="youtube-section">
+                    <h3>🎵 Descargar desde YouTube</h3>
+                    <p class="subtitle-small">Nota: Puede no funcionar debido a restricciones de YouTube</p>
+                    <div class="input-group">
+                        <input
+                            type="text"
+                            id="youtube-url"
+                            placeholder="Pega aquí la URL de YouTube (ej: https://www.youtube.com/watch?v=...)"
+                            class="input-field"
+                        >
+                        <button id="download-btn" class="btn btn-primary">Descargar Audio</button>
+                    </div>
+                    <div id="download-status" class="status-message"></div>
+                </div>
             </section>
 
             <!-- Sección de filtros -->

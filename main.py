@@ -1,9 +1,10 @@
-from fastapi import FastAPI, HTTPException, Cookie
+from fastapi import FastAPI, HTTPException, Cookie, UploadFile, File, Form
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 from typing import Optional
 import os
+import shutil
 from audio_processor import AudioProcessor
 from session_manager import session_manager
 
@@ -69,6 +70,49 @@ async def download_youtube(request: YouTubeRequest):
             "filename": os.path.basename(filepath),
             "session_id": session_id
         })
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/upload")
+async def upload_file(file: UploadFile = File(...), session_id: Optional[str] = Form(None)):
+    """Subir archivo de audio desde el dispositivo del usuario"""
+    try:
+        # Si no hay session_id, crear uno nuevo
+        if not session_id:
+            session_id = session_manager.create_session()
+
+        # Verificar que la sesión existe
+        if not session_manager.session_exists(session_id):
+            session_id = session_manager.create_session()
+
+        # Validar extensión de archivo
+        allowed_extensions = ['.mp3', '.wav', '.flac', '.ogg', '.m4a']
+        file_ext = os.path.splitext(file.filename)[1].lower()
+
+        if file_ext not in allowed_extensions:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Formato no soportado. Usa: {', '.join(allowed_extensions)}"
+            )
+
+        # Guardar archivo temporal
+        temp_input = session_manager.get_session_path(session_id, f"uploaded{file_ext}")
+
+        with open(temp_input, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        # Procesar archivo (convertir a WAV si es necesario)
+        output_path = processor.process_uploaded_file(temp_input, session_id)
+
+        return JSONResponse({
+            "success": True,
+            "message": "Audio cargado exitosamente",
+            "filename": os.path.basename(output_path),
+            "session_id": session_id
+        })
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
