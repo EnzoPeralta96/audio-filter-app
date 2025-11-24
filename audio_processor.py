@@ -153,8 +153,9 @@ class AudioProcessor:
             filtered_audio = signal.filtfilt(b, a, audio)
 
         elif filter_type == "band_pass_treble":
-            # Rango de agudos (5000-20000 Hz) - platillos
-            b, a = self.design_bandpass_filter(sr, 5000, 20000)
+            # Rango de agudos (5000-10000 Hz) - platillos
+            # Limitado a 10000 Hz para evitar exceder Nyquist (sr=22050, Nyquist=11025)
+            b, a = self.design_bandpass_filter(sr, 5000, 10000)
             filtered_audio = signal.filtfilt(b, a, audio)
 
         elif filter_type == "echo":
