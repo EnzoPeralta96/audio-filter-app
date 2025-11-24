@@ -22,12 +22,14 @@ processor = AudioProcessor()
 
 class YouTubeRequest(BaseModel):
     url: str
+    session_id: Optional[str] = None
 
 
 class FilterRequest(BaseModel):
     filter_type: str  # "low_pass", "high_pass", "band_pass", "echo"
     cutoff_freq: float = 1000.0  # Frecuencia de corte en Hz
     intensity: float = 1.0  # Intensidad del filtro (0.0 - 1.0)
+    session_id: Optional[str] = None
 
 
 @app.get("/")
@@ -47,10 +49,11 @@ async def create_session():
 
 
 @app.post("/api/download")
-async def download_youtube(request: YouTubeRequest, session_id: Optional[str] = None):
+async def download_youtube(request: YouTubeRequest):
     """Descargar audio de YouTube"""
     try:
         # Si no hay session_id, crear uno nuevo
+        session_id = request.session_id
         if not session_id:
             session_id = session_manager.create_session()
 
@@ -71,9 +74,10 @@ async def download_youtube(request: YouTubeRequest, session_id: Optional[str] = 
 
 
 @app.post("/api/apply_filter")
-async def apply_filter(request: FilterRequest, session_id: Optional[str] = None):
+async def apply_filter(request: FilterRequest):
     """Aplicar filtro al audio cargado"""
     try:
+        session_id = request.session_id
         if not session_id or not session_manager.session_exists(session_id):
             raise HTTPException(status_code=400, detail="Sesión inválida o expirada")
 
