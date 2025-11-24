@@ -1,9 +1,11 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Cookie
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
+from typing import Optional
 import os
 from audio_processor import AudioProcessor
+from session_manager import session_manager
 
 app = FastAPI(title="Audio Filter App")
 
@@ -34,28 +36,49 @@ async def read_root():
     return FileResponse("static/index.html")
 
 
+@app.post("/api/create_session")
+async def create_session():
+    """Crear nueva sesión para el usuario"""
+    session_id = session_manager.create_session()
+    return JSONResponse({
+        "success": True,
+        "session_id": session_id
+    })
+
+
 @app.post("/api/download")
-async def download_youtube(request: YouTubeRequest):
+async def download_youtube(request: YouTubeRequest, session_id: Optional[str] = None):
     """Descargar audio de YouTube"""
     try:
-        filepath = processor.download_from_youtube(request.url)
+        # Si no hay session_id, crear uno nuevo
+        if not session_id:
+            session_id = session_manager.create_session()
+
+        # Verificar que la sesión existe
+        if not session_manager.session_exists(session_id):
+            session_id = session_manager.create_session()
+
+        filepath = processor.download_from_youtube(request.url, session_id)
+
         return JSONResponse({
             "success": True,
             "message": "Audio descargado exitosamente",
-            "filename": os.path.basename(filepath)
+            "filename": os.path.basename(filepath),
+            "session_id": session_id
         })
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.post("/api/apply_filter")
-async def apply_filter(request: FilterRequest):
+async def apply_filter(request: FilterRequest, session_id: Optional[str] = None):
     """Aplicar filtro al audio cargado"""
     try:
-        if not processor.has_audio():
-            raise HTTPException(status_code=400, detail="No hay audio cargado")
+        if not session_id or not session_manager.session_exists(session_id):
+            raise HTTPException(status_code=400, detail="Sesión inválida o expirada")
 
         output_path = processor.apply_filter(
+            session_id=session_id,
             filter_type=request.filter_type,
             cutoff_freq=request.cutoff_freq,
             intensity=request.intensity
@@ -71,13 +94,13 @@ async def apply_filter(request: FilterRequest):
 
 
 @app.get("/api/visualize/{viz_type}")
-async def visualize(viz_type: str):
+async def visualize(viz_type: str, session_id: Optional[str] = None):
     """Generar visualización del audio"""
     try:
-        if not processor.has_audio():
-            raise HTTPException(status_code=400, detail="No hay audio cargado")
+        if not session_id or not session_manager.session_exists(session_id):
+            raise HTTPException(status_code=400, detail="Sesión inválida o expirada")
 
-        image_path = processor.generate_visualization(viz_type)
+        image_path = processor.generate_visualization(session_id, viz_type)
         return FileResponse(image_path, media_type="image/png")
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -93,12 +116,21 @@ async def get_audio(filename: str):
 
 
 @app.get("/api/status")
-async def get_status():
+async def get_status(session_id: Optional[str] = None):
     """Obtener estado actual del procesador"""
+    if not session_id or not session_manager.session_exists(session_id):
+        return JSONResponse({
+            "has_audio": False,
+            "session_valid": False
+        })
+
+    info = processor.get_audio_info(session_id)
+
     return JSONResponse({
-        "has_audio": processor.has_audio(),
-        "sample_rate": processor.sr if processor.has_audio() else None,
-        "duration": len(processor.audio) / processor.sr if processor.has_audio() else None
+        "has_audio": info is not None,
+        "session_valid": True,
+        "sample_rate": info["sample_rate"] if info else None,
+        "duration": info["duration"] if info else None
     })
 
 

@@ -1,5 +1,6 @@
 // Estado de la aplicación
 let state = {
+    sessionId: null,
     hasAudio: false,
     selectedFilter: null,
     originalAudioPath: null,
@@ -64,13 +65,19 @@ async function downloadAudio() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ url })
+            body: JSON.stringify({
+                url,
+                session_id: state.sessionId
+            })
         });
 
         const data = await response.json();
 
         if (response.ok) {
             showStatus(elements.downloadStatus, data.message, 'success');
+
+            // Guardar session_id
+            state.sessionId = data.session_id;
             state.hasAudio = true;
             state.originalAudioPath = data.filename;
 
@@ -130,6 +137,11 @@ async function applyFilter() {
         return;
     }
 
+    if (!state.sessionId) {
+        showStatus(elements.filterStatus, 'Sesión inválida. Por favor recarga la página.', 'error');
+        return;
+    }
+
     elements.applyFilterBtn.disabled = true;
     showStatus(elements.filterStatus, 'Aplicando filtro...', 'loading');
 
@@ -145,7 +157,8 @@ async function applyFilter() {
             body: JSON.stringify({
                 filter_type: state.selectedFilter,
                 cutoff_freq: cutoffFreq,
-                intensity: intensity
+                intensity: intensity,
+                session_id: state.sessionId
             })
         });
 
@@ -169,7 +182,7 @@ async function applyFilter() {
 }
 
 async function showVisualization(vizType) {
-    if (!state.hasAudio) {
+    if (!state.hasAudio || !state.sessionId) {
         return;
     }
 
@@ -177,7 +190,7 @@ async function showVisualization(vizType) {
         // Mostrar indicador de carga
         elements.vizImage.style.display = 'none';
 
-        const response = await fetch(`/api/visualize/${vizType}`);
+        const response = await fetch(`/api/visualize/${vizType}?session_id=${state.sessionId}`);
 
         if (response.ok) {
             const blob = await response.blob();
