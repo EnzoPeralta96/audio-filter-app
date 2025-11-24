@@ -1,0 +1,19 @@
+# Framework web
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+python-multipart==0.0.20
+
+# Procesamiento de audio
+librosa==0.10.2.post1
+soundfile==0.12.1
+scipy==1.14.1
+numpy==1.26.4
+
+# Descarga de YouTube
+yt-dlp==2024.11.18
+
+# Visualización
+matplotlib==3.9.3
+
+# Validación de datos
+pydantic==2.10.3

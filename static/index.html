@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Filter App - Procesamiento de Señales</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Audio Filter App</h1>
+            <p class="subtitle">Procesamiento de Señales - Convolución y Correlación</p>
+        </header>
+
+        <main>
+            <!-- Sección de descarga -->
+            <section class="card">
+                <h2>1. Cargar Audio desde YouTube</h2>
+                <div class="input-group">
+                    <input
+                        type="text"
+                        id="youtube-url"
+                        placeholder="Pega aquí la URL de YouTube (ej: https://www.youtube.com/watch?v=...)"
+                        class="input-field"
+                    >
+                    <button id="download-btn" class="btn btn-primary">Descargar Audio</button>
+                </div>
+                <div id="download-status" class="status-message"></div>
+            </section>
+
+            <!-- Sección de filtros -->
+            <section class="card" id="filter-section" style="display: none;">
+                <h2>2. Seleccionar Filtro</h2>
+
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="band_pass_bass">
+                        <span class="filter-icon">🥁</span>
+                        <span class="filter-name">Solo Graves</span>
+                        <span class="filter-desc">Bajo + Bombo (20-250 Hz)</span>
+                    </button>
+
+                    <button class="filter-btn" data-filter="band_pass_mids">
+                        <span class="filter-icon">🎸</span>
+                        <span class="filter-name">Solo Medios</span>
+                        <span class="filter-desc">Guitarra + Voz (250-5000 Hz)</span>
+                    </button>
+
+                    <button class="filter-btn" data-filter="band_pass_treble">
+                        <span class="filter-icon">🔔</span>
+                        <span class="filter-name">Solo Agudos</span>
+                        <span class="filter-desc">Platillos (5000-20000 Hz)</span>
+                    </button>
+
+                    <button class="filter-btn" data-filter="low_pass">
+                        <span class="filter-icon">📉</span>
+                        <span class="filter-name">Pasa-Bajos</span>
+                        <span class="filter-desc">Filtro personalizado</span>
+                    </button>
+
+                    <button class="filter-btn" data-filter="high_pass">
+                        <span class="filter-icon">📈</span>
+                        <span class="filter-name">Pasa-Altos</span>
+                        <span class="filter-desc">Filtro personalizado</span>
+                    </button>
+
+                    <button class="filter-btn" data-filter="echo">
+                        <span class="filter-icon">🔊</span>
+                        <span class="filter-name">Eco</span>
+                        <span class="filter-desc">Efecto de eco (convolución)</span>
+                    </button>
+                </div>
+
+                <!-- Controles de filtro -->
+                <div class="filter-controls" id="custom-controls" style="display: none;">
+                    <div class="control-group">
+                        <label for="cutoff-freq">Frecuencia de corte (Hz):</label>
+                        <input type="range" id="cutoff-freq" min="20" max="10000" value="1000" step="10">
+                        <span id="cutoff-value">1000 Hz</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="intensity">Intensidad del filtro:</label>
+                    <input type="range" id="intensity" min="0" max="100" value="100" step="1">
+                    <span id="intensity-value">100%</span>
+                </div>
+
+                <button id="apply-filter-btn" class="btn btn-success" disabled>Aplicar Filtro</button>
+                <div id="filter-status" class="status-message"></div>
+            </section>
+
+            <!-- Sección de reproducción -->
+            <section class="card" id="playback-section" style="display: none;">
+                <h2>3. Reproducir Audio</h2>
+
+                <div class="audio-players">
+                    <div class="audio-player">
+                        <h3>Audio Original</h3>
+                        <audio id="original-audio" controls></audio>
+                    </div>
+
+                    <div class="audio-player">
+                        <h3>Audio Filtrado</h3>
+                        <audio id="filtered-audio" controls></audio>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección de visualización -->
+            <section class="card" id="visualization-section" style="display: none;">
+                <h2>4. Visualizaciones</h2>
+
+                <div class="viz-buttons">
+                    <button class="btn btn-secondary" data-viz="waveform">Forma de Onda</button>
+                    <button class="btn btn-secondary" data-viz="spectrogram">Espectrograma</button>
+                    <button class="btn btn-secondary" data-viz="spectrum">Espectro FFT</button>
+                </div>
+
+                <div id="visualization-container">
+                    <img id="viz-image" src="" alt="Visualización" style="display: none;">
+                </div>
+            </section>
+
+            <!-- Información técnica -->
+            <section class="card info-card">
+                <h2>Información Técnica</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Convolución:</strong>
+                        <p>Utilizada para aplicar el efecto de eco mediante la convolución de la señal con una respuesta al impulso.</p>
+                    </div>
+                    <div class="info-item">
+                        <strong>Filtros Butterworth:</strong>
+                        <p>Implementados para separar diferentes rangos de frecuencia (graves, medios, agudos).</p>
+                    </div>
+                    <div class="info-item">
+                        <strong>FFT:</strong>
+                        <p>Transformada rápida de Fourier para análisis espectral del audio.</p>
+                    </div>
+                    <div class="info-item">
+                        <strong>STFT:</strong>
+                        <p>Short-Time Fourier Transform para generar el espectrograma.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Proyecto de Procesamiento de Señales - Métodos Numéricos 2</p>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
