@@ -10,7 +10,7 @@ scipy==1.14.1
 numpy==1.26.4
 
 # Descarga de YouTube
-yt-dlp==2024.11.18
+yt-dlp>=2024.12.6
 
 # Visualización
 matplotlib==3.9.3
